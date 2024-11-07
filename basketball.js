@@ -259,3 +259,103 @@ function button(label, x, y, w, h) {
   text(label, x, y); 
   return mouseIsPressed && mouseX > x - w / 2 && mouseX < x + w / 2 && mouseY > y - h / 2 && mouseY < y + h / 2;
 }
+function drawAsteroidPage() {
+  let asteroids = [];
+let asteroidCount = 1; 
+let asteroidSize = 70; 
+let score = 0;
+
+function setup() {
+  createCanvas(600, 600);
+  for (let i = 0; i < asteroidCount; i++) {
+    spawnAsteroid();
+  }
+}
+
+function draw() {
+  background(0);
+
+  
+  for (let i = 0; i < asteroids.length; i++) {
+    let asteroid = asteroids[i];
+    if (asteroid.visible) {
+      push();
+      translate(asteroid.x, asteroid.y);
+      stroke(255);
+      fill(100);
+      createAsteroid(0, 0, asteroidSize, 5);
+      pop();
+
+      
+      asteroid.x += asteroid.speed;
+
+      
+      if (asteroid.x > width) {
+        respawnAsteroid(asteroid);
+      }
+    }
+  }
+
+  
+  drawHitMarker(mouseX, mouseY);
+
+  
+  fill(255);
+  textSize(24);
+  text("Score: " + score, 10, 30);
+
+  
+  if (score >= 20) {
+    textSize(32);
+    text("Congratulations!", width / 2 - 100, height / 2);
+    noLoop(); 
+  }
+}
+
+function mousePressed() {
+  
+  for (let i = 0; i < asteroids.length; i++) {
+    let asteroid = asteroids[i];
+    if (asteroid.visible && dist(mouseX, mouseY, asteroid.x, asteroid.y) < asteroidSize) {
+      asteroid.visible = false; 
+      score++; 
+      respawnAsteroid(asteroid); 
+    }
+  }
+}
+
+function createAsteroid(x, y, size, vertices) {
+  beginShape();
+  for (let i = 0; i < TWO_PI; i += TWO_PI / vertices) {
+    let offset = random(-size / 3, size / 3);
+    let r = size + offset;
+    let xPos = r * cos(i);
+    let yPos = r * sin(i);
+    vertex(x + xPos, y + yPos);
+  }
+  endShape(CLOSE);
+}
+
+function drawHitMarker(x, y) {
+  stroke(255, 0, 0);
+  line(x - 10, y, x + 10, y); 
+  line(x, y - 10, x, y + 10); 
+}
+
+function spawnAsteroid() {
+  let asteroid = {
+    x: random(-200, 0), 
+    y: random(height),  
+    speed: random(1, 3), 
+    visible: true       
+  };
+  asteroids.push(asteroid);
+}
+
+function respawnAsteroid(asteroid) {
+  asteroid.x = random(-200, 0); 
+  asteroid.y = random(height);  
+  asteroid.speed = random(1, 3); 
+  asteroid.visible = true; 
+}
+}
