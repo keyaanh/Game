@@ -13,15 +13,19 @@ let scoreTextTimer = 0;
 let buttonClicked = false;
 let selectedLevel = null; 
 let mouseReleasedFlag = true;
+let homeBackgroundImg;
+let gameBackgroundImg;
 
 function preload() {
   sparkyImg = loadImage('assets/pngegg.png');
-  courtImg = loadImage('assets/cartoon-background-basketball-court-street-outdoor-sport-arena-with-baskets-game_33099-1016.jpg');
+  courtImg = loadImage('assets/Screenshot 2024-11-11 at 6.07.20 PM.png');
   basketballImg = loadImage('assets/basketball.png');
   pitchforkImg = loadImage('assets/Image 10-29-24 at 1.54 PM.jpeg');
   swishSound = loadSound('assets/basketball-swish-sound-effect-made-with-Voicemod.mp3');
   missSound = loadSound('assets/mixkit-game-show-wrong-answer-buzz-950.wav');
-  
+  homeBackgroundImg = loadImage('assets/Screenshot 2024-11-11 at 6.46.36 PM.png'); 
+  gameBackgroundImg = loadImage('assets/Screenshot 2024-11-11 at 6.52.06 PM.png');
+
 }
 
 function setup() {
@@ -49,13 +53,12 @@ function draw() {
 }
 
 function drawHomePage() {
+  image(homeBackgroundImg, 0, 0, width, height);
+
   fill('gold');
   textSize(45);
   textStyle(BOLD);
 
-  text("Welcome to the Game Hub", width/2, height/6);
-  image(pitchforkImg, 30, 200, width / 3, height / 3);
-  image(pitchforkImg, 520, 200, width / 3, height / 3);
   textSize(18);
   if (button("Go to Game Selection", width / 2, height / 2, 200, 50) && mouseReleasedFlag && !buttonClicked) {
     buttonClicked = true;
@@ -66,6 +69,7 @@ function drawHomePage() {
 
 
 function drawGameSelectionPage() {
+  image(gameBackgroundImg, 0, 0, width, height);
   fill('gold');
   textSize(45);
   
@@ -98,6 +102,7 @@ function mouseReleased() {
 }
 
 function drawLevelsPage() {
+  image(gameBackgroundImg, 0, 0, width, height);
   textSize(45);
   textAlign(CENTER, CENTER);
   fill('gold')
