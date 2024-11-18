@@ -20,6 +20,8 @@ let asteroids = [];
 let asteroidCount = 1; 
 let asteroidSize = 70;
 let asteroidGameScore = 0; 
+let showCongratulations = false;
+let congratulationsTimer = 0;
 
 function preload() {
   sparkyImg = loadImage('assets/pngegg.png');
@@ -91,6 +93,7 @@ function drawGameSelectionPage() {
     mouseReleasedFlag = false;
   }
   if (button("Asteroids", width / 2, height / 2 + 60, 200, 50) && mouseReleasedFlag) {
+    resetAsteroidsGame();
     currentPage = "asteroids";
     mouseReleasedFlag = false;
   }
@@ -271,6 +274,19 @@ function button(label, x, y, w, h) {
 
 function drawAsteroidsPage() {
   background(0);
+  if (showCongratulations){
+    fill(255);
+    textSize(32);
+    textAlign(CENTER, CENTER);
+    text("Congratulations!", width / 2 , height / 2);
+
+    congratulationsTimer--;
+    if(congratulationsTimer <= 0){
+      currentPage = "gameSelection";
+      showCongratulations = false;
+    }
+    return;
+  }
   for (let i = 0; i < asteroids.length; i++) {
     let asteroid = asteroids[i];
     if (asteroid.visible) {
@@ -290,13 +306,13 @@ function drawAsteroidsPage() {
   drawHitMarker(mouseX, mouseY);
   fill(255);
   textSize(24);
-  text("Score: " + asteroidGameScore, 20, 30);
+  text("Score: " + asteroidGameScore, 60, 30);
 
-  if (asteroidGameScore >= 20) {
-    textSize(32);
-    text("Congratulations!", width / 2 - 100, height / 2);
-    noLoop(); 
+  if (asteroidGameScore >= 20 && !showCongratulations){
+    showCongratulations = true;
+    congratulationsTimer = 180;
   }
+
 }
 
 function mousePressed() {
@@ -360,4 +376,13 @@ function setup() {
   for (let i = 0; i < asteroidCount; i++) {
     spawnAsteroid();
   }
+}
+function resetAsteroidsGame(){
+  asteroidGameScore = 0;
+  asteroid = [];
+  for (let i = 0; i < asteroidCount; i++){
+    spawnAsteroid();
+  }
+  showCongratulations = false;
+  congratulationsTimer = 0;
 }
