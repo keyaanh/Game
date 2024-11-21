@@ -1,0 +1,699 @@
+let currentPage = "home";
+let sparkyImg, courtImg, basketballImg, swishSound, missSound;
+let basketballX, basketballY;
+let basketballSpeedX = 0, basketballSpeedY = 0;
+let shooting = false;
+let dragging = false;
+let startX, startY;
+let aimLineX, aimLineY;
+let score = 0;
+let levelShotsMade = 0; 
+let showScoreText = false;
+let scoreTextTimer = 0;
+let buttonClicked = false;
+let selectedLevel = null; 
+let mouseReleasedFlag = true;
+let homeBackgroundImg;
+let gameBackgroundImg;
+
+let asteroids = []; 
+let asteroidCount = 1; 
+let asteroidSize = 70;
+let asteroidGameScore = 0; 
+
+let sequence = [];
+let userSequence = [];
+let level = 0;
+let gameSpeed = 1000;
+let gameStarted = false;
+let userTurn = false;
+let buttonColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
+
+// Preload assets
+function preload() {
+    sparkyImg = loadImage('assets/pngegg.png');
+    courtImg = loadImage('assets/basketball-court-space.png');
+    basketballImg = loadImage('assets/basketball.png');
+    swishSound = loadSound('assets/basketball-swish-sound-effect-made-with-Voicemod.mp3');
+    missSound = loadSound('assets/mixkit-game-show-wrong-answer-buzz-950.wav');
+    homeBackgroundImg = loadImage('assets/HomePage.png'); 
+    gameBackgroundImg = loadImage('assets/GP-LP-background.png');
+}
+
+function setup() {
+    createCanvas(800, 600);
+    resetBall();
+    for (let i = 0; i < asteroidCount; i++) spawnAsteroid();
+}
+
+function draw() {
+    background(128, 0, 0);
+    if (currentPage === "home") {
+        drawHomePage();
+    } else if (currentPage === "gameSelection") {
+        drawGameSelectionPage();
+    } else if (currentPage === "levels") {
+        drawLevelsPage(); 
+    } else if (currentPage === "basketball") {
+        basketballDraw();
+    } else if (currentPage === "simonSays") {
+        drawSimonLevelsPage();
+    } else if (currentPage === "easyModeGame") {
+        easyModeGame.draw();  
+    } else if (currentPage === "hardModeGame") {
+        hardModeGame.draw();  
+    } else if (currentPage === "asteroids") {
+        drawAsteroidsPage();
+    }
+}
+
+// Home Page
+function drawHomePage() {
+    image(homeBackgroundImg, 0, 0, width, height);
+  
+    fill('gold');
+    textSize(45);
+    textStyle(BOLD);
+  
+    textSize(18);
+    if (button("Go to Game Selection", width / 2, height / 2, 200, 50) && mouseReleasedFlag && !buttonClicked) {
+      buttonClicked = true;
+      currentPage = "gameSelection";
+      mouseReleasedFlag = false; 
+    }
+  }
+  
+  
+  function drawGameSelectionPage() {
+    image(gameBackgroundImg, 0, 0, width, height);
+    fill('gold');
+    textSize(45);
+    
+    textAlign(CENTER, CENTER);
+    
+    text("Select a Game", width / 2, height / 4);
+    textSize(18);
+    
+    if (button("Basketball", width / 2, height / 2 - 60, 200, 50) && mouseReleasedFlag) {
+      currentPage = "levels"; 
+      mouseReleasedFlag = false; 
+    }
+    if (button("Simon Says", width / 2, height / 2, 200, 50) && mouseReleasedFlag) {
+      currentPage = "simonSays";
+      mouseReleasedFlag = false;
+    }
+    if (button("Asteroids", width / 2, height / 2 + 60, 200, 50) && mouseReleasedFlag) {
+      currentPage = "asteroids";
+      mouseReleasedFlag = false;
+    }
+    if (button("Find the Imposter", width / 2, height / 2 + 120, 200, 50) && mouseReleasedFlag) {
+      currentPage = "findImposter";
+      mouseReleasedFlag = false;
+      
+    }
+  }
+// Levels Page for Basketball
+function drawLevelsPage() {
+    image(gameBackgroundImg, 0, 0, width, height);
+    textSize(45);
+    textAlign(CENTER, CENTER);
+    fill('gold')
+    text("Select a Level", width / 2, height / 4);
+    textSize(20)
+    if (button("Free Throw Line", width / 2, height / 2 - 60, 250, 50) && mouseReleasedFlag) {
+      selectedLevel = "freeThrow";
+      setBasketballPosition(); 
+      currentPage = "basketball";
+      mouseReleasedFlag = false;
+      levelShotsMade = 0; 
+    }
+    if (button("3-pt Line", width / 2, height / 2, 250, 50) && mouseReleasedFlag) {
+      selectedLevel = "threePoint";
+      setBasketballPosition(); 
+      currentPage = "basketball";
+      mouseReleasedFlag = false;
+      levelShotsMade = 0;
+    }
+    if (button("Full Court", width / 2, height / 2 + 60, 250, 50) && mouseReleasedFlag) {
+      selectedLevel = "fullCourt";
+      setBasketballPosition(); 
+      currentPage = "basketball";
+      mouseReleasedFlag = false;
+      levelShotsMade = 0;
+    }
+    
+    if (button("Back to Game Page", width / 2, height / 2 + 120, 250, 50) && mouseReleasedFlag) {
+      currentPage = "gameSelection";
+      mouseReleasedFlag = false;
+    }
+  }
+
+// Basketball Position
+function setBasketballPosition() {
+    if (selectedLevel === "freeThrow") {
+        basketballX = 575;
+        basketballY = height - 100;
+    } else if (selectedLevel === "threePoint") {
+        basketballX = 500;
+        basketballY = height - 150;
+    } else if (selectedLevel === "fullCourt") {
+        basketballX = 100;
+        basketballY = height - 100;
+    }
+}
+
+// Basketball Game Render
+function basketballDraw() {
+    background(255);
+    image(courtImg, 0, 0, width, height);
+  
+    let sparkyPosition = selectedLevel === "threePoint" ? [425, height - 145] : 
+                        selectedLevel === "freeThrow" ? [550, height - 150] :
+                        [100, height - 100]; 
+  
+    image(sparkyImg, ...sparkyPosition, 75, 75);
+    image(basketballImg, basketballX, basketballY, 30, 30);
+    fill(0);
+    textSize(24);
+    text(`Score: ${score}`, 50, 30); 
+    text(`Shots Made: ${levelShotsMade}`, 80, 60);  
+
+    if (dragging) {
+        stroke(255, 0, 0);
+        strokeWeight(2);
+        line(basketballX + 15, basketballY + 15, aimLineX, aimLineY);
+    }
+
+    if (shooting) {
+        basketballX += basketballSpeedX;
+        basketballY += basketballSpeedY;
+        basketballSpeedY += 0.5;
+
+        if (basketballX > 650 && basketballX < 710 && basketballY < 225) {
+            score++;
+            levelShotsMade++; 
+            swishSound.play();
+            showScoreText = true;
+            scoreTextTimer = 60;
+            resetBall();
+            
+            if (levelShotsMade >= 5) {
+                if (selectedLevel === "freeThrow") {
+                    selectedLevel = "threePoint";
+                } else if (selectedLevel === "threePoint") {
+                    selectedLevel = "fullCourt";
+                } else {
+                    currentPage = "gameSelection"; 
+                }
+                setBasketballPosition(); 
+                levelShotsMade = 0; 
+            }
+        }
+
+        if (basketballY > height - 30 || basketballX < 0 || basketballX > width) {
+            missSound.play();
+            resetBall();
+        }
+    }
+
+    if (showScoreText) {
+        fill(0, 255, 0);
+        textSize(48);
+        textAlign(CENTER, CENTER);
+        text("SCORE", width / 2, height / 2);
+        scoreTextTimer--;
+
+        if (scoreTextTimer <= 0) {
+            showScoreText = false;
+        }
+    }
+}
+
+// Mouse Functions
+function mousePressed() {
+    if (currentPage === "basketball") {
+        if (dist(mouseX, mouseY, basketballX + 15, basketballY + 15) < 15) {
+            dragging = true;
+            startX = mouseX;
+            startY = mouseY;
+        }
+    } else if (currentPage === "asteroids") {
+        for (let i = 0; i < asteroids.length; i++) {
+            let asteroid = asteroids[i];
+            if (asteroid.visible && dist(mouseX, mouseY, asteroid.x, asteroid.y) < asteroidSize) {
+                asteroid.visible = false;
+                asteroidGameScore++;
+                respawnAsteroid(asteroid);
+            }
+        }
+    } else if (currentPage === "easyModeGame") {
+        easyModeGame.mousePressed();
+    } else if (currentPage === "hardModeGame") {
+        hardModeGame.mousePressed();
+    }
+}
+
+function mouseDragged() {
+    if (dragging) {
+        aimLineX = mouseX;
+        aimLineY = mouseY;
+    }
+}
+
+function mouseReleased() {
+    if (dragging) {
+        dragging = false;
+        shooting = true;
+        let forceX = startX - mouseX;
+        let forceY = startY - mouseY;
+        basketballSpeedX = forceX * 0.1;
+        basketballSpeedY = forceY * 0.1;
+    }
+    mouseReleasedFlag = true; 
+}
+
+// Button Drawing
+function button(label, x, y, w, h) {
+    rectMode(CENTER);
+    fill('gold'); 
+    rect(x, y, w, h, 10); 
+    fill(0); 
+    textAlign(CENTER, CENTER);
+    text(label, x, y); 
+    return mouseIsPressed && mouseX > x - w / 2 && mouseX < x + w / 2 && mouseY > y - h / 2 && mouseY < y + h / 2;
+}
+
+// Asteroid Functions
+function drawAsteroidsPage() {
+    background(0);
+    for (let i = 0; i < asteroids.length; i++) {
+        let asteroid = asteroids[i];
+        if (asteroid.visible) {
+            push();
+            translate(asteroid.x, asteroid.y);
+            stroke(255);
+            fill(100);
+            createAsteroid(0, 0, asteroidSize, 5);
+            pop();
+            asteroid.x += asteroid.speed;
+            if (asteroid.x > width) {
+                respawnAsteroid(asteroid);
+            }
+        }
+    }
+    
+    drawHitMarker(mouseX, mouseY);
+    fill(255);
+    textSize(24);
+    text("Score: " + asteroidGameScore, 20, 30);
+
+    if (asteroidGameScore >= 20) {
+        textSize(32);
+        text("Congratulations!", width / 2 - 100, height / 2);
+        noLoop(); 
+    }
+}
+
+function spawnAsteroid() {
+    let asteroid = {
+        x: random(-200, 0), 
+        y: random(height),  
+        speed: random(1, 3), 
+        visible: true       
+    };
+    asteroids.push(asteroid);
+}
+
+function respawnAsteroid(asteroid) {
+    asteroid.x = random(-200, 0); 
+    asteroid.y = random(height);  
+    asteroid.speed = random(1, 3); 
+    asteroid.visible = true; 
+}
+
+function createAsteroid(x, y, size, vertices) {
+    beginShape();
+    for (let i = 0; i < TWO_PI; i += TWO_PI / vertices) {
+        let offset = random(-size / 3, size / 3);
+        let r = size + offset;
+        let xPos = r * cos(i);
+        let yPos = r * sin(i);
+        vertex(x + xPos, y + yPos);
+    }
+    endShape(CLOSE);
+}
+
+function drawHitMarker(x, y) {
+    stroke(255, 0, 0);
+    line(x - 10, y, x + 10, y); 
+    line(x, y - 10, x, y + 10); 
+}
+
+// Simon Says Game
+function drawSimonLevelsPage() {
+    image(gameBackgroundImg, 0, 0, width, height);
+    textSize(45);
+    textAlign(CENTER, CENTER);
+    fill('gold');
+    text("Select a Mode", width / 2, height / 4); 
+
+    textSize(20);
+    
+    if (button("Easy Mode", width / 2, height / 2 - 60, 250, 50)) {
+        currentPage = "easyModeGame";  
+        easyModeGame.setup();    
+    }
+
+    if (button("Hard Mode", width / 2, height / 2, 250, 50)) {
+        currentPage = "hardModeGame"; 
+        hardModeGame.setup();         
+    }
+
+    if (button("Back to Game Page", width / 2, height / 2 + 60, 250, 50)) {
+        currentPage = "gameSelection";          
+    }
+}
+
+// Easy Mode Game 
+let easyModeGame = {
+    colors: ['red', 'yellow', 'green', 'blue'],
+    sequence: [],
+    playerSequence: [],
+    level: 0,
+    playerTurn: false,
+    compTurn: true,
+    index: 0,
+    lastPlayTime: 0,
+    blinkDuration: 600,
+    gameOver: false,
+    showingBlink: false,
+
+    setup: function() {
+      this.nextColor();
+    },
+    
+    draw: function() {
+      background(255);
+      
+      if (this.gameOver) {
+        background('green');
+        fill('white');
+        textSize(50);
+        textAlign(CENTER, CENTER);
+        text("You Win! Game Over", width / 2, height / 2);
+        return;
+      }
+    
+      this.drawButtons();
+      fill('green');
+      textSize(35);
+      textAlign(CENTER, CENTER);
+      text(`Level: ${this.level}`, width / 2, height - 15);
+    
+      if (this.compTurn) {
+        if (!this.showingBlink && millis() - this.lastPlayTime > this.blinkDuration) {
+          this.showingBlink = true;
+          this.lastPlayTime = millis();
+        }
+    
+        if (this.showingBlink) {
+          this.highlightButton(this.sequence[this.index]);
+          if (millis() - this.lastPlayTime > this.blinkDuration / 2) {
+            this.showingBlink = false;
+            this.index++;
+            this.lastPlayTime = millis();
+          }
+        }
+    
+        if (this.index === this.sequence.length) {
+          this.compTurn = false;
+          this.playerTurn = true;
+          this.index = 0;
+          this.playerSequence = [];
+        }
+      } else if (this.playerTurn && this.playerSequence.length === this.sequence.length) {
+        this.checkPlayerSequence();
+      }
+    },
+    
+    drawButtons: function() {
+      let baseColors = { red: 'darkred', green: 'darkgreen', blue: 'darkblue', yellow: 'goldenrod' };
+    
+      for (let color of this.colors) {
+        fill(baseColors[color]);
+        let [x, y] = this.getButtonPosition(color);
+        rect(x, y, width / 2.2, height / 2.2);
+      }
+    },
+    
+    highlightButton: function(color) {
+      let brightColors = { red: 'pink', green: 'lightgreen', blue: 'lightblue', yellow: 'lightyellow' };
+      fill(brightColors[color]);
+      let [x, y] = this.getButtonPosition(color);
+      rect(x, y, width / 2.2, height / 2.2);
+    },
+    
+    getButtonPosition: function(color) {
+      switch (color) {
+        case 'red': return [200, 150];
+        case 'green': return [width / 1.385, 150];
+        case 'blue': return [200, height / 1.38];
+        case 'yellow': return [width / 1.385, height / 1.38];
+      }
+    },
+    
+    nextColor: function() {
+      if (this.level === 5) {
+        this.gameOver = true;
+        return;
+      }
+      this.sequence.push(random(this.colors));
+      this.level++;
+      this.compTurn = true;
+      this.playerTurn = false;
+      this.index = 0;
+      this.lastPlayTime = millis();
+    },
+    
+    checkPlayerSequence: function() {
+      if (this.sequence.join() === this.playerSequence.join()) {
+        this.nextColor();
+      } else {
+        this.sequence = [];
+        this.level = 0;
+        this.nextColor();
+      }
+    },
+    
+    mousePressed: function() {
+      if (!this.playerTurn || this.gameOver) return;
+      let color = this.getColorClicked(mouseX, mouseY);
+      if (color) {
+          this.playerSequence.push(color);
+          this.highlightButton(color);
+      }
+    },
+    
+    getColorClicked: function(x, y) {
+      if (x < width / 2 && y < height / 2) return 'red';
+      if (x >= width / 2 && y < height / 2) return 'green';
+      if (x < width / 2 && y >= height / 2) return 'blue';
+      if (x >= width / 2 && y >= height / 2) return 'yellow';
+    }
+};
+
+// Hard Mode Game 
+let hardModeGame = {
+    colors: ['red', 'yellow', 'green', 'blue', 'purple', 'orange'],
+    sequence: [],
+    playerSequence: [],
+    level: 0,
+    playerTurn: false,
+    compTurn: true,
+    index: 0,
+    lastPlayTime: 0,
+    playInterval: 800,
+    isButtonHighlighted: false,
+    gameOver: false,
+    
+    setup: function() {
+      this.nextColor();
+    },
+    
+    draw: function() {
+      background(255);
+    
+      if (this.gameOver) {
+        background('black');
+        fill(255); 
+        textSize(50);
+        textAlign(CENTER, CENTER);
+        text("You Win! Game Over", width / 2, height / 2);
+        return;
+      }
+    
+      this.drawButtons();
+    
+      fill(0);
+      textSize(35);
+      textAlign(CENTER, CENTER);
+      text(`Level: ${this.level}`, width / 2, height - 40);
+    
+      // Computer's turn
+      if (this.compTurn && millis() - this.lastPlayTime > this.playInterval) {
+        if (this.index < this.sequence.length) {
+          this.isButtonHighlighted = true;
+          this.highlightButton(this.sequence[this.index]);
+          this.lastPlayTime = millis();
+          this.index++;
+        } else {
+          this.compTurn = false;
+          this.playerTurn = true;
+          this.index = 0;
+          this.playerSequence = [];
+        }
+      }
+    
+      if (this.isButtonHighlighted && millis() - this.lastPlayTime > this.playInterval / 2) {
+        this.isButtonHighlighted = false;
+        this.drawButtons(); 
+      }
+  
+      // Check if player completed their sequence correctly
+      if (this.playerTurn && this.playerSequence.length === this.sequence.length) {
+        this.checkPlayerSequence();
+      }
+    },
+    
+    drawButtons: function() {
+      let buttonWidth = width / 4; // Button width
+      let buttonHeight = height / 4; // Button height
+      let xShift = width / 8; // Adjust this value to move the layout further right
+  
+      let xOffsets = [
+          width / 4 - buttonWidth / 2 + xShift,
+          width / 2 - buttonWidth / 2 + xShift,
+          (3 * width) / 4 - buttonWidth / 2 + xShift
+      ];
+      let yOffsets = [
+          height / 2.5 - buttonHeight / 10,
+          (1.6 * height) / 2.5 - buttonHeight / 30
+      ];
+  
+      let colors = ['darkred', 'darkgreen', 'darkblue', 'goldenrod', 'darkviolet', 'darkorange'];
+      let index = 0;
+  
+      for (let y of yOffsets) {
+        for (let x of xOffsets) {
+          fill(colors[index]);
+          rect(x, y, buttonWidth, buttonHeight);
+          index++;
+        }
+      }
+    },
+    
+    highlightButton: function(color) {
+      let brightColors = {
+          red: 'pink',
+          green: 'lightgreen',
+          blue: 'lightblue',
+          yellow: 'lightyellow',
+          purple: 'violet',
+          orange: 'lightsalmon',
+      };
+  
+      let buttonWidth = width / 4;
+      let buttonHeight = height / 3;
+      let xShift = width / 8;
+  
+      let xOffsets = [
+          width / 4 - buttonWidth / 2 + xShift,
+          width / 2 - buttonWidth / 2 + xShift,
+          (3 * width) / 4 - buttonWidth / 2 + xShift
+      ];
+      let yOffsets = [
+          height / 2.5 - buttonHeight / 10,
+          (1.6 * height) / 2.5 - buttonHeight / 30
+      ];
+  
+      let positions = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
+      let index = positions.indexOf(color);
+  
+      if (index !== -1) {
+          let x = xOffsets[index % 3];
+          let y = yOffsets[Math.floor(index / 3)];
+          fill(brightColors[color]);
+          rect(x, y, buttonWidth, buttonHeight);
+      }
+    },
+    
+    nextColor: function() {
+      if (this.level === 10) {
+        this.gameOver = true;
+        return;
+      }
+      this.sequence.push(random(this.colors));
+      this.level++;
+      this.compTurn = true;
+      this.playerTurn = false;
+      this.index = 0;
+      this.lastPlayTime = millis();
+    },
+    
+    checkPlayerSequence: function() {
+      if (this.sequence.join() === this.playerSequence.join()) {
+        this.nextColor();
+      } else {
+        this.gameOver = true;
+      }
+    },
+    
+    mousePressed: function() {
+      if (!this.playerTurn || this.gameOver) return;
+      let color = this.getColorClicked(mouseX, mouseY);
+      if (color) {
+          this.playerSequence.push(color);
+          this.highlightButton(color);
+      }
+    },
+
+    getColorClicked: function(x, y) {
+      let buttonWidth = width / 4;
+      let buttonHeight = height / 4;
+      let xShift = width / 8; // Adjust this value to move the layout further right
+  
+      let xOffsets = [
+          width / 4 - buttonWidth / 2 + xShift,
+          width / 2 - buttonWidth / 2 + xShift,
+          (3 * width) / 4 - buttonWidth / 2 + xShift
+      ];
+      let yOffsets = [
+          height / 2.5 - buttonHeight / 10,
+          (1.6 * height) / 2.5 - buttonHeight / 30
+      ];
+  
+      let colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
+  
+      for (let i = 0; i < yOffsets.length; i++) {
+        for (let j = 0; j < xOffsets.length; j++) {
+          if (
+            x > xOffsets[j] && x < xOffsets[j] + buttonWidth &&
+            y > yOffsets[i] && y < yOffsets[i] + buttonHeight
+          ) {
+            return colors[i * 3 + j];
+          }
+        }
+      }
+    }
+};
+
+// Reset the basketball
+function resetBall() {
+    setBasketballPosition(); 
+    basketballSpeedX = 0;
+    basketballSpeedY = 0;
+    shooting = false;
+}
+
+// Spawn and respawn asteroids assumed to be here
+// Additional asteroid and other game's functions will remain unchanged as previously defined
