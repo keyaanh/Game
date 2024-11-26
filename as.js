@@ -303,7 +303,7 @@ function drawAsteroidsPage() {
     drawHitMarker(mouseX, mouseY);
     fill(255);
     textSize(24);
-    text("Score: " + asteroidGameScore, 20, 30);
+    text("Score: " + asteroidGameScore, 60, 30);
 
     if (asteroidGameScore >= 20) {
         textSize(32);
