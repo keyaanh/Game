@@ -60,8 +60,6 @@ function draw() {
         drawSimonLevelsPage();
     } else if (currentPage === "easyModeGame") {
         easyModeGame.draw();  
-    } else if (currentPage === "hardModeGame") {
-        hardModeGame.draw();  
     } else if (currentPage === "asteroids") {
         drawAsteroidsPage();
     }
@@ -359,14 +357,9 @@ function drawSimonLevelsPage() {
 
     textSize(20);
     
-    if (button("Easy Mode", width / 2, height / 2 - 60, 250, 50)) {
+    if (button("Click to Start!", width / 2, height / 2 - 60, 250, 50)) {
         currentPage = "easyModeGame";  
         easyModeGame.setup();    
-    }
-
-    if (button("Hard Mode", width / 2, height / 2, 250, 50)) {
-        currentPage = "hardModeGame"; 
-        hardModeGame.setup();         
     }
 
     if (button("Back to Game Page", width / 2, height / 2 + 60, 250, 50)) {
@@ -502,190 +495,6 @@ let easyModeGame = {
     }
 };
 
-// Hard Mode Game 
-let hardModeGame = {
-    colors: ['red', 'yellow', 'green', 'blue', 'purple', 'orange'],
-    sequence: [],
-    playerSequence: [],
-    level: 0,
-    playerTurn: false,
-    compTurn: true,
-    index: 0,
-    lastPlayTime: 0,
-    playInterval: 800,
-    isButtonHighlighted: false,
-    gameOver: false,
-    
-    setup: function() {
-      this.nextColor();
-    },
-    
-    draw: function() {
-      background(255);
-    
-      if (this.gameOver) {
-        background('black');
-        fill(255); 
-        textSize(50);
-        textAlign(CENTER, CENTER);
-        text("You Win! Game Over", width / 2, height / 2);
-        return;
-      }
-    
-      this.drawButtons();
-    
-      fill(0);
-      textSize(35);
-      textAlign(CENTER, CENTER);
-      text(`Level: ${this.level}`, width / 2, height - 40);
-    
-      // Computer's turn
-      if (this.compTurn && millis() - this.lastPlayTime > this.playInterval) {
-        if (this.index < this.sequence.length) {
-          this.isButtonHighlighted = true;
-          this.highlightButton(this.sequence[this.index]);
-          this.lastPlayTime = millis();
-          this.index++;
-        } else {
-          this.compTurn = false;
-          this.playerTurn = true;
-          this.index = 0;
-          this.playerSequence = [];
-        }
-      }
-    
-      if (this.isButtonHighlighted && millis() - this.lastPlayTime > this.playInterval / 2) {
-        this.isButtonHighlighted = false;
-        this.drawButtons(); 
-      }
-  
-      // Check if player completed their sequence correctly
-      if (this.playerTurn && this.playerSequence.length === this.sequence.length) {
-        this.checkPlayerSequence();
-      }
-    },
-    
-    drawButtons: function() {
-      let buttonWidth = width / 4; // Button width
-      let buttonHeight = height / 4; // Button height
-      let xShift = width / 8; // Adjust this value to move the layout further right
-  
-      let xOffsets = [
-          width / 4 - buttonWidth / 2 + xShift,
-          width / 2 - buttonWidth / 2 + xShift,
-          (3 * width) / 4 - buttonWidth / 2 + xShift
-      ];
-      let yOffsets = [
-          height / 2.5 - buttonHeight / 10,
-          (1.6 * height) / 2.5 - buttonHeight / 30
-      ];
-  
-      let colors = ['darkred', 'darkgreen', 'darkblue', 'goldenrod', 'darkviolet', 'darkorange'];
-      let index = 0;
-  
-      for (let y of yOffsets) {
-        for (let x of xOffsets) {
-          fill(colors[index]);
-          rect(x, y, buttonWidth, buttonHeight);
-          index++;
-        }
-      }
-    },
-    
-    highlightButton: function(color) {
-      let brightColors = {
-          red: 'pink',
-          green: 'lightgreen',
-          blue: 'lightblue',
-          yellow: 'lightyellow',
-          purple: 'violet',
-          orange: 'lightsalmon',
-      };
-  
-      let buttonWidth = width / 4;
-      let buttonHeight = height / 3;
-      let xShift = width / 8;
-  
-      let xOffsets = [
-          width / 4 - buttonWidth / 2 + xShift,
-          width / 2 - buttonWidth / 2 + xShift,
-          (3 * width) / 4 - buttonWidth / 2 + xShift
-      ];
-      let yOffsets = [
-          height / 2.5 - buttonHeight / 10,
-          (1.6 * height) / 2.5 - buttonHeight / 30
-      ];
-  
-      let positions = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
-      let index = positions.indexOf(color);
-  
-      if (index !== -1) {
-          let x = xOffsets[index % 3];
-          let y = yOffsets[Math.floor(index / 3)];
-          fill(brightColors[color]);
-          rect(x, y, buttonWidth, buttonHeight);
-      }
-    },
-    
-    nextColor: function() {
-      if (this.level === 10) {
-        this.gameOver = true;
-        return;
-      }
-      this.sequence.push(random(this.colors));
-      this.level++;
-      this.compTurn = true;
-      this.playerTurn = false;
-      this.index = 0;
-      this.lastPlayTime = millis();
-    },
-    
-    checkPlayerSequence: function() {
-      if (this.sequence.join() === this.playerSequence.join()) {
-        this.nextColor();
-      } else {
-        this.gameOver = true;
-      }
-    },
-    
-    mousePressed: function() {
-      if (!this.playerTurn || this.gameOver) return;
-      let color = this.getColorClicked(mouseX, mouseY);
-      if (color) {
-          this.playerSequence.push(color);
-          this.highlightButton(color);
-      }
-    },
-
-    getColorClicked: function(x, y) {
-      let buttonWidth = width / 4;
-      let buttonHeight = height / 4;
-      let xShift = width / 8; // Adjust this value to move the layout further right
-  
-      let xOffsets = [
-          width / 4 - buttonWidth / 2 + xShift,
-          width / 2 - buttonWidth / 2 + xShift,
-          (3 * width) / 4 - buttonWidth / 2 + xShift
-      ];
-      let yOffsets = [
-          height / 2.5 - buttonHeight / 10,
-          (1.6 * height) / 2.5 - buttonHeight / 30
-      ];
-  
-      let colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange'];
-  
-      for (let i = 0; i < yOffsets.length; i++) {
-        for (let j = 0; j < xOffsets.length; j++) {
-          if (
-            x > xOffsets[j] && x < xOffsets[j] + buttonWidth &&
-            y > yOffsets[i] && y < yOffsets[i] + buttonHeight
-          ) {
-            return colors[i * 3 + j];
-          }
-        }
-      }
-    }
-};
 
 // Reset the basketball
 function resetBall() {
@@ -694,6 +503,3 @@ function resetBall() {
     basketballSpeedY = 0;
     shooting = false;
 }
-
-// Spawn and respawn asteroids assumed to be here
-// Additional asteroid and other game's functions will remain unchanged as previously defined
