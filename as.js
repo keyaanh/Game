@@ -20,6 +20,8 @@ let asteroids = [];
 let asteroidCount = 1; 
 let asteroidSize = 70;
 let asteroidGameScore = 0; 
+let showCongratulations = false;
+let congratulationsTimer = 0;
 
 let sequence = [];
 let userSequence = [];
@@ -101,6 +103,7 @@ function drawHomePage() {
       mouseReleasedFlag = false;
     }
     if (button("Asteroids", width / 2, height / 2 + 60, 200, 50) && mouseReleasedFlag) {
+      resetAsteroidsGame();
       currentPage = "asteroids";
       mouseReleasedFlag = false;
     }
@@ -284,6 +287,19 @@ function button(label, x, y, w, h) {
 // Asteroid Functions
 function drawAsteroidsPage() {
     background(0);
+    if (showCongratulations){
+      fill(255);
+      textSize(32);
+      textAlign(CENTER,CENTER);
+      text("Congratulations!", width / 2, height / 2);
+
+      congratulationsTimer--;
+      if (congratulationsTimer <= 0){
+        currentPage = "gameSelection"
+        showCongratulations = false;
+      }
+      return;
+    }
     for (let i = 0; i < asteroids.length; i++) {
         let asteroid = asteroids[i];
         if (asteroid.visible) {
@@ -305,10 +321,9 @@ function drawAsteroidsPage() {
     textSize(24);
     text("Score: " + asteroidGameScore, 60, 30);
 
-    if (asteroidGameScore >= 20) {
-        textSize(32);
-        text("Congratulations!", width / 2 - 100, height / 2);
-        noLoop(); 
+    if (asteroidGameScore >= 20 && !showCongratulations){
+      showCongratulations = true;
+      congratulationsTimer = 180;
     }
 }
 
@@ -345,6 +360,15 @@ function drawHitMarker(x, y) {
     stroke(255, 0, 0);
     line(x - 10, y, x + 10, y); 
     line(x, y - 10, x, y + 10); 
+}
+function resetAsteroidsGame(){
+  asteroidGameScore = 0;
+  asteroids = [];
+  for (let i = 0; i < asteroidCount; i++){
+    spawnAsteroid();
+  }
+  showCongratulations = false;
+  congratulationsTimer = 0;
 }
 
 // Simon Says Game
