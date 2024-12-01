@@ -21,6 +21,16 @@ let asteroidCount = 1;
 let asteroidSize = 70;
 let asteroidGameScore = 0; 
 
+let sparkyImages = [];
+let sparkyVariants = [];
+let sparkyIndex;
+let figures = [];
+let Sparkyscore = 0;
+let level = 1; 
+let correctAnswers = 0;
+let gameOver = false;
+let message = "";
+
 function preload() {
   sparkyImg = loadImage('assets/pngegg.png');
   courtImg = loadImage('assets/basketball-court-space.png');
@@ -30,12 +40,19 @@ function preload() {
   homeBackgroundImg = loadImage('assets/HomePage.png'); 
   gameBackgroundImg = loadImage('assets/GP-LP-background.png');
 
+  sparkyImages.push(loadImage('assets/pngegg.png')); // Normal Sparky image
+  sparkyVariants.push(loadImage('assets/GreenSparky-fotor-bg-remover-20241130203621.png')); // Green Sparky
+  sparkyVariants.push(loadImage('assets/BlueSparky-fotor-bg-remover-20241130203938.png')); // Blue Staff Sparky
+  sparkyVariants.push(loadImage('assets/StacheSparky-fotor-bg-remover-20241130203540.png')); // Missing Mustache
+  sparkyVariants.push(loadImage('assets/NoTailSparky-fotor-bg-remover-2024113020366.png')); // Missing Tail
+
 }
 
 function setup() {
   createCanvas(800, 600);
   resetBall();
 }
+
 
 function draw() {
   background(128,0,0);
@@ -52,7 +69,7 @@ function draw() {
   } else if (currentPage === "asteroids") {
     drawAsteroidsPage();
   } else if (currentPage === "findImposter") {
-    drawFindImposterPage();
+    drawFindImposterGame();
   }
 }
 
@@ -360,4 +377,134 @@ function setup() {
   for (let i = 0; i < asteroidCount; i++) {
     spawnAsteroid();
   }
+}
+
+
+//Imposter Game
+function setup() {
+  createCanvas(800, 600);
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  textFont('Georgia');
+  fill(255);
+
+  
+  sparkyIndex = floor(random(5));
+  
+  let spacing = width / 6;
+  
+  for (let i = 0; i < 5; i++) {
+    let x = i * spacing + spacing / 2;
+    let y = height / 2 - 40;
+    let figure = { 
+      x, 
+      y, 
+      isDifferent: false,
+      image: sparkyImages[0] 
+    };
+
+    if (i === sparkyIndex) {
+      figure.isDifferent = true; 
+      let randomVariant = random(sparkyVariants);
+      figure.image = randomVariant; 
+    }
+    
+    figures.push(figure);
+  }
+}
+
+function drawFindImposterGame() {
+  background(155, 43, 58);
+ 
+
+  
+  textSize(32);
+  fill(255);
+  text("Find the Different Sparky", width / 2, 50);
+
+  textSize(32);
+  fill(255);
+  text("Score: " + Sparkyscore, width - 100, 50);
+
+
+  for (let figure of figures) {
+    image(figure.image, figure.x, figure.y, 80, 80);
+  }
+
+  
+  if (gameOver) {
+    textSize(24);
+    if (message === "Correct!") {
+      fill(49,197,49); 
+      text("Correct! Next Level!", width / 2, height / 1.5);
+    } else if (message === "Wrong Choice") {
+      fill(255, 0, 0); 
+      text(message, width / 2, height / 1.5);
+    }
+
+    // if the player won
+    if (correctAnswers === 5) {
+      fill(0, 255, 0); 
+      text("You Won! You Got 5 Right!", width / 2, height / 2 + 40);
+    }
+
+    textSize(24);
+    text("Click to Continue", width / 2, height - 100);
+  }
+}
+
+function mousePressed() {
+  if (gameOver) {
+    if (message === "Correct!") {
+      correctAnswers++; 
+      if (correctAnswers >= 5) {
+        gameOver = true;
+        message = "You Won! You Got 5 Right!"; 
+        currentPage = "gameSelection";
+      } else {
+        level++;
+        Sparkyscore++;
+        gameOver = false;
+        figures = [];
+        setup(); 
+      }
+    } else {
+      restartGame();
+    }
+    return;
+  }
+
+  for (let i = 0; i < figures.length; i++) {
+    let figure = figures[i];
+    let imgWidth = 80;
+    let imgHeight = 80;
+
+    if (
+      mouseX > figure.x &&
+      mouseX < figure.x + imgWidth &&
+      mouseY > figure.y &&
+      mouseY < figure.y + imgHeight
+    ) {
+      if (figure.isDifferent) {
+        message = "Correct!";  
+      } else {
+        message = "Wrong Choice"; 
+      }
+
+      gameOver = true;
+      break;
+    }
+  }
+}
+
+
+function restartGame() {
+  
+  gameOver = false;
+  figures = [];
+  level = 1; 
+  Sparkyscore = 0;
+  correctAnswers = 0; 
+  message = ""; 
+  setup();
 }
