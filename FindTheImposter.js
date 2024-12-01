@@ -35,8 +35,8 @@ let sparkyImages = [];
 let sparkyVariants = [];
 let sparkyIndex;
 let figures = [];
-let imposterScore = 0;
-let imposterLevel = 1; 
+let Sparkyscore = 0;
+let Sparkylevel = 1; 
 let correctAnswers = 0;
 let gameOver = false;
 let message = "";
@@ -52,12 +52,10 @@ function preload() {
     gameBackgroundImg = loadImage('assets/GP-LP-background.png');
 
     sparkyImages.push(loadImage('assets/pngegg.png')); // Normal Sparky image
-    sparkyVariants.push(loadImage('assets/GreenSparky.png')); // Green Sparky
-    sparkyVariants.push(loadImage('assets/BlueSparky.png')); // Blue Staff Sparky
-    sparkyVariants.push(loadImage('assets/StacheSparky.png')); // Missing Mustache
-    sparkyVariants.push(loadImage('assets/NoTailSparky.png')); // Missing Tail
-  
-    bgImage = loadImage('assets/GP-LP-background.png');
+    sparkyVariants.push(loadImage('assets/GreenSparky-fotor-bg-remover-20241130203621.png')); // Green Sparky
+    sparkyVariants.push(loadImage('assets/BlueSparky-fotor-bg-remover-20241130203938.png')); // Blue Staff Sparky
+    sparkyVariants.push(loadImage('assets/StacheSparky-fotor-bg-remover-20241130203540.png')); // Missing Mustache
+    sparkyVariants.push(loadImage('assets/NoTailSparky-fotor-bg-remover-2024113020366.png')); // Missing Tail
 }
 
 function setup() {
@@ -82,8 +80,8 @@ function draw() {
         easyModeGame.draw();  
     } else if (currentPage === "asteroids") {
         drawAsteroidsPage();
-    } else if (currentPage === "findImposter"){
-        drawfindImposterPage();
+    } else if (currentPage === "findImposter") {
+      drawFindImposterGame();
     }
 }
 
@@ -252,7 +250,50 @@ function basketballDraw() {
 
 // Mouse Functions
 function mousePressed() {
-    if (currentPage === "basketball") {
+  if (currentPage === "findImposter") {
+    // Imposter game specific mouse functionality
+    if (gameOver) {
+      if (message === "Correct!") {
+        correctAnswers++; 
+        if (correctAnswers >= 5) {
+          gameOver = true;
+          message = "You Won! You Got 5 Right!"; 
+          currentPage = "gameSelection"; // Redirect to game selection page after winning
+        } else {
+          Sparkylevel++;
+          Sparkyscore++;
+          gameOver = false;
+          figures = [];
+          setup(); // Proceed to next level
+        }
+      } else {
+        restartGame(); // Restart the game on wrong choice
+      }
+      return;
+    }
+
+    for (let i = 0; i < figures.length; i++) {
+      let figure = figures[i];
+      let imgWidth = 80;
+      let imgHeight = 80;
+
+      if (
+        mouseX > figure.x &&
+        mouseX < figure.x + imgWidth &&
+        mouseY > figure.y &&
+        mouseY < figure.y + imgHeight
+      ) {
+        if (figure.isDifferent) {
+          message = "Correct!";  
+        } else {
+          message = "Wrong Choice"; 
+        }
+
+        gameOver = true;
+        break;
+      }
+    } 
+  } else if (currentPage === "basketball") {
         if (dist(mouseX, mouseY, basketballX + 15, basketballY + 15) < 15) {
             dragging = true;
             startX = mouseX;
@@ -269,9 +310,8 @@ function mousePressed() {
         }
     } else if (currentPage === "easyModeGame") {
         easyModeGame.mousePressed();
-    } else if (currentPage === "hardModeGame") {
-        hardModeGame.mousePressed();
-    }
+
+  }
 }
 
 function mouseDragged() {
@@ -424,6 +464,7 @@ let easyModeGame = {
     blinkDuration: 600,
     gameOver: false,
     showingBlink: false,
+    winTimer: null,
 
     setup: function() {
       this.nextColor();
@@ -438,6 +479,15 @@ let easyModeGame = {
         textSize(50);
         textAlign(CENTER, CENTER);
         text("You Win! Game Over", width / 2, height / 2);
+
+        if (this.winTimer === null) {
+          this.winTimer = millis();
+        }
+
+        if (millis() - this.winTimer > 3000){
+          currentPage = "gameSelection";
+          this.resetGame();
+        }
         return;
       }
     
@@ -536,9 +586,21 @@ let easyModeGame = {
       if (x >= width / 2 && y < height / 2) return 'green';
       if (x < width / 2 && y >= height / 2) return 'blue';
       if (x >= width / 2 && y >= height / 2) return 'yellow';
-    }
+    },
+    resetGame: function() {
+      this.sequence = [];
+      this.playerSequence = [];
+      this.level = 0;
+      this.playerTurn = false;
+      this.compTurn = true;
+      this.index = 0;
+      this.lastPlayTime = 0;
+      this.blinkDuration = 600;
+      this.gameOver = false;
+      this.showingBlink = false;
+      this.winTimer = null; // Reset the timer
+  }
 };
-
 
 // Reset the basketball
 function resetBall() {
@@ -548,8 +610,9 @@ function resetBall() {
     shooting = false;
 }
 
-// Find the imposter game
-function drawfindImposterPage(){
+
+//Imposter Game
+function setup() {
   createCanvas(800, 600);
   textAlign(CENTER, CENTER);
   textSize(32);
@@ -557,7 +620,7 @@ function drawfindImposterPage(){
   fill(255);
 
   
-  sparkyIndex = floor(random(5)); // Randomly select Sparky
+  sparkyIndex = floor(random(5));
   
   let spacing = width / 6;
   
@@ -571,7 +634,6 @@ function drawfindImposterPage(){
       image: sparkyImages[0] 
     };
 
-    // Randomly pick Sparky to be the different
     if (i === sparkyIndex) {
       figure.isDifferent = true; 
       let randomVariant = random(sparkyVariants);
@@ -582,17 +644,18 @@ function drawfindImposterPage(){
   }
 }
 
-function draw() {
+function drawFindImposterGame() {
   background(155, 43, 58);
+ 
+
   
   textSize(32);
   fill(255);
   text("Find the Different Sparky", width / 2, 50);
 
-  // Display the score
   textSize(32);
   fill(255);
-  text("Score: " + imposterScore, width - 100, 50);
+  text("Score: " + Sparkyscore, width - 100, 50);
 
 
   for (let figure of figures) {
@@ -603,16 +666,16 @@ function draw() {
   if (gameOver) {
     textSize(24);
     if (message === "Correct!") {
-      fill(255, 223, 0);  // Yellow correct
+      fill(49,197,49); 
       text("Correct! Next Level!", width / 2, height / 1.5);
     } else if (message === "Wrong Choice") {
-      fill(255, 0, 0);  // Red wrong
+      fill(255, 0, 0); 
       text(message, width / 2, height / 1.5);
     }
 
     // if the player won
     if (correctAnswers === 5) {
-      fill(0, 255, 0);  // Green for message
+      fill(0, 255, 0); 
       text("You Won! You Got 5 Right!", width / 2, height / 2 + 40);
     }
 
@@ -621,58 +684,12 @@ function draw() {
   }
 }
 
-function mousePressed() {
-  if (gameOver) {
-    // Go to the next level 
-    if (message === "Correct!") {
-      correctAnswers++; 
-      if (correctAnswers >= 5) {
-        gameOver = true; // End the game after 5 correct 
-        message = "You Won! You Got 5 Right!"; 
-      } else {
-        imposterLevel++;
-        imposterScore++;
-        gameOver = false;
-        figures = [];
-        setup(); 
-      }
-    } else {
-      restartGame();
-    }
-    return;
-  }
-
-
-  for (let i = 0; i < figures.length; i++) {
-    let figure = figures[i];
-    let imgWidth = 80;
-    let imgHeight = 80;
-
-   
-    if (
-      mouseX > figure.x &&
-      mouseX < figure.x + imgWidth &&
-      mouseY > figure.y &&
-      mouseY < figure.y + imgHeight
-    ) {
-      if (figure.isDifferent) {
-        message = "Correct!";  
-      } else {
-        message = "Wrong Choice"; 
-      }
-
-      gameOver = true;
-      break;
-    }
-  }
-}
-
 function restartGame() {
   
   gameOver = false;
   figures = [];
-  imposterLevel = 1; 
-  imposterScore = 0;
+  Sparkylevel = 1; 
+  Sparkyscore = 0;
   correctAnswers = 0; 
   message = ""; 
   setup();
