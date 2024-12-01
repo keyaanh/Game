@@ -31,6 +31,16 @@ let gameStarted = false;
 let userTurn = false;
 let buttonColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
 
+let sparkyImages = [];
+let sparkyVariants = [];
+let sparkyIndex;
+let figures = [];
+let imposterScore = 0;
+let imposterLevel = 1; 
+let correctAnswers = 0;
+let gameOver = false;
+let message = "";
+
 // Preload assets
 function preload() {
     sparkyImg = loadImage('assets/pngegg.png');
@@ -40,6 +50,14 @@ function preload() {
     missSound = loadSound('assets/mixkit-game-show-wrong-answer-buzz-950.wav');
     homeBackgroundImg = loadImage('assets/HomePage.png'); 
     gameBackgroundImg = loadImage('assets/GP-LP-background.png');
+
+    sparkyImages.push(loadImage('assets/pngegg.png')); // Normal Sparky image
+    sparkyVariants.push(loadImage('assets/GreenSparky.png')); // Green Sparky
+    sparkyVariants.push(loadImage('assets/BlueSparky.png')); // Blue Staff Sparky
+    sparkyVariants.push(loadImage('assets/StacheSparky.png')); // Missing Mustache
+    sparkyVariants.push(loadImage('assets/NoTailSparky.png')); // Missing Tail
+  
+    bgImage = loadImage('assets/GP-LP-background.png');
 }
 
 function setup() {
@@ -64,6 +82,8 @@ function draw() {
         easyModeGame.draw();  
     } else if (currentPage === "asteroids") {
         drawAsteroidsPage();
+    } else if (currentPage === "findImposter"){
+        drawfindImposterPage();
     }
 }
 
@@ -526,4 +546,134 @@ function resetBall() {
     basketballSpeedX = 0;
     basketballSpeedY = 0;
     shooting = false;
+}
+
+// Find the imposter game
+function drawfindImposterPage(){
+  createCanvas(800, 600);
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  textFont('Georgia');
+  fill(255);
+
+  
+  sparkyIndex = floor(random(5)); // Randomly select Sparky
+  
+  let spacing = width / 6;
+  
+  for (let i = 0; i < 5; i++) {
+    let x = i * spacing + spacing / 2;
+    let y = height / 2 - 40;
+    let figure = { 
+      x, 
+      y, 
+      isDifferent: false,
+      image: sparkyImages[0] 
+    };
+
+    // Randomly pick Sparky to be the different
+    if (i === sparkyIndex) {
+      figure.isDifferent = true; 
+      let randomVariant = random(sparkyVariants);
+      figure.image = randomVariant; 
+    }
+    
+    figures.push(figure);
+  }
+}
+
+function draw() {
+  background(155, 43, 58);
+  
+  textSize(32);
+  fill(255);
+  text("Find the Different Sparky", width / 2, 50);
+
+  // Display the score
+  textSize(32);
+  fill(255);
+  text("Score: " + imposterScore, width - 100, 50);
+
+
+  for (let figure of figures) {
+    image(figure.image, figure.x, figure.y, 80, 80);
+  }
+
+  
+  if (gameOver) {
+    textSize(24);
+    if (message === "Correct!") {
+      fill(255, 223, 0);  // Yellow correct
+      text("Correct! Next Level!", width / 2, height / 1.5);
+    } else if (message === "Wrong Choice") {
+      fill(255, 0, 0);  // Red wrong
+      text(message, width / 2, height / 1.5);
+    }
+
+    // if the player won
+    if (correctAnswers === 5) {
+      fill(0, 255, 0);  // Green for message
+      text("You Won! You Got 5 Right!", width / 2, height / 2 + 40);
+    }
+
+    textSize(24);
+    text("Click to Continue", width / 2, height - 100);
+  }
+}
+
+function mousePressed() {
+  if (gameOver) {
+    // Go to the next level 
+    if (message === "Correct!") {
+      correctAnswers++; 
+      if (correctAnswers >= 5) {
+        gameOver = true; // End the game after 5 correct 
+        message = "You Won! You Got 5 Right!"; 
+      } else {
+        imposterLevel++;
+        imposterScore++;
+        gameOver = false;
+        figures = [];
+        setup(); 
+      }
+    } else {
+      restartGame();
+    }
+    return;
+  }
+
+
+  for (let i = 0; i < figures.length; i++) {
+    let figure = figures[i];
+    let imgWidth = 80;
+    let imgHeight = 80;
+
+   
+    if (
+      mouseX > figure.x &&
+      mouseX < figure.x + imgWidth &&
+      mouseY > figure.y &&
+      mouseY < figure.y + imgHeight
+    ) {
+      if (figure.isDifferent) {
+        message = "Correct!";  
+      } else {
+        message = "Wrong Choice"; 
+      }
+
+      gameOver = true;
+      break;
+    }
+  }
+}
+
+function restartGame() {
+  
+  gameOver = false;
+  figures = [];
+  imposterLevel = 1; 
+  imposterScore = 0;
+  correctAnswers = 0; 
+  message = ""; 
+  setup();
 }
