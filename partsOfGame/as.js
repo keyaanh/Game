@@ -58,10 +58,16 @@ function preload() {
     sparkyVariants.push(loadImage('assets/NoTailSparky-fotor-bg-remover-2024113020366.png')); // Missing Tail
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight); // Resize canvas on window resize
+}
+
 function setup() {
-    createCanvas(800, 600);
-    resetBall();
-    for (let i = 0; i < asteroidCount; i++) spawnAsteroid();
+  createCanvas(windowWidth, windowHeight); // Dynamically set canvas size
+  noStroke();
+  textAlign(CENTER, CENTER);
+  resetBall();
+  for (let i = 0; i < asteroidCount; i++) spawnAsteroid();
 }
 
 function draw() {
@@ -87,7 +93,7 @@ function draw() {
 
 // Home Page
 function drawHomePage() {
-    image(homeBackgroundImg, 0, 0, width, height);
+  background(homeBackgroundImg);
   
     fill('gold');
     textSize(45);
@@ -103,7 +109,7 @@ function drawHomePage() {
   
   
   function drawGameSelectionPage() {
-    image(gameBackgroundImg, 0, 0, width, height);
+    background(gameBackgroundImg);
     fill('gold');
     textSize(45);
     
@@ -133,7 +139,7 @@ function drawHomePage() {
   }
 // Levels Page for Basketball
 function drawLevelsPage() {
-    image(gameBackgroundImg, 0, 0, width, height);
+  background(gameBackgroundImg);
     textSize(45);
     textAlign(CENTER, CENTER);
     fill('gold')
@@ -464,7 +470,6 @@ let easyModeGame = {
     blinkDuration: 600,
     gameOver: false,
     showingBlink: false,
-    winTimer: null,
 
     setup: function() {
       this.nextColor();
@@ -479,15 +484,6 @@ let easyModeGame = {
         textSize(50);
         textAlign(CENTER, CENTER);
         text("You Win! Game Over", width / 2, height / 2);
-
-        if (this.winTimer === null) {
-          this.winTimer = millis();
-        }
-
-        if (millis() - this.winTimer > 3000){
-          currentPage = "gameSelection";
-          this.resetGame();
-        }
         return;
       }
     
@@ -586,20 +582,7 @@ let easyModeGame = {
       if (x >= width / 2 && y < height / 2) return 'green';
       if (x < width / 2 && y >= height / 2) return 'blue';
       if (x >= width / 2 && y >= height / 2) return 'yellow';
-    },
-    resetGame: function() {
-      this.sequence = [];
-      this.playerSequence = [];
-      this.level = 0;
-      this.playerTurn = false;
-      this.compTurn = true;
-      this.index = 0;
-      this.lastPlayTime = 0;
-      this.blinkDuration = 600;
-      this.gameOver = false;
-      this.showingBlink = false;
-      this.winTimer = null; // Reset the timer
-  }
+    }
 };
 
 // Reset the basketball
